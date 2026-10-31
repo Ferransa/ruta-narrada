@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="es">
 <head>
@@ -74,6 +75,37 @@
   ol.log .m { color: var(--muted); font-size: 0.85rem; }
   .empty { color: var(--muted); font-size: 0.92rem; margin: 0; }
   .demo-note { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+  /* Pestañas y modo Podcasts */
+  .panel { display: flex; flex-direction: column; gap: 18px; }
+  [hidden] { display: none !important; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tab {
+    font: inherit; font-weight: 700; padding: 14px 10px; border-radius: 14px; cursor: pointer;
+    border: 2px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  .tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .tab:focus-visible, input:focus-visible { outline: 3px solid var(--alert); outline-offset: 2px; }
+  .addrow { display: flex; gap: 8px; margin-top: 10px; }
+  .addrow input {
+    flex: 1; min-width: 0; font: inherit; padding: 12px 14px; border-radius: 12px;
+    border: 2px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  .addrow .btn { width: auto; font-size: 1rem; padding: 12px 18px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .player { background: var(--card); border: 2px solid var(--accent); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .player .place { font-size: 1.05rem; font-weight: 700; margin: 0; }
+  .player .meta { color: var(--muted); margin: 0; font-size: 0.9rem; }
+  .player audio { width: 100%; }
+  ol.eps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  ol.eps button {
+    font: inherit; text-align: left; width: 100%; cursor: pointer; color: var(--ink);
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+  }
+  ol.eps button:focus-visible { outline: 3px solid var(--alert); outline-offset: 2px; }
+  ol.eps .t { font-weight: 600; display: block; overflow-wrap: anywhere; }
+  ol.eps .m { color: var(--muted); font-size: 0.85rem; display: block; margin-top: 2px; }
+  ol.eps li.done button { opacity: 0.6; }
 </style>
 </head>
 <body>
@@ -82,6 +114,13 @@
     <h1>Ruta Narrada</h1>
     <p class="sub">Tu guía de voz mientras pedaleas.</p>
   </header>
+
+  <nav class="tabs" role="tablist" aria-label="Modo">
+    <button class="tab" id="tab-ruta" type="button" role="tab" aria-selected="true">Ruta narrada</button>
+    <button class="tab" id="tab-pod" type="button" role="tab" aria-selected="false">Podcasts</button>
+  </nav>
+
+  <div id="panel-ruta" class="panel">
 
   <section aria-labelledby="h-temas">
     <h2 id="h-temas">Temas</h2>
@@ -129,6 +168,44 @@
     <button class="btn ghost" id="demo" type="button">Probar sin moverme (demo en Madrid)</button>
     <p class="demo-note">Simula un paseo por el centro de Madrid para comprobar que la voz y los temas funcionan desde casa.</p>
   </section>
+  </div>
+
+  <div id="panel-pod" class="panel" hidden>
+    <section aria-labelledby="h-pbus">
+      <h2 id="h-pbus">Buscar podcasts de un tema</h2>
+      <form class="addrow" id="podForm">
+        <label class="sr" for="podNew">Tema a buscar</label>
+        <input id="podNew" type="search" placeholder="Escribe un tema, por ejemplo: IRPF" autocomplete="off" maxlength="60">
+        <button class="btn" type="submit">Buscar</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="h-ptemas">
+      <h2 id="h-ptemas">Mis temas guardados</h2>
+      <div class="chips" id="podTopics"></div>
+      <p class="demo-note" style="margin-top:8px">Toca un tema para buscar sus episodios más recientes.</p>
+      <button class="btn ghost" id="podSave" type="button" hidden style="margin-top:10px">Guardar este tema</button>
+    </section>
+
+    <p class="status" id="podStatus" role="status">Elige un tema para buscar podcasts.</p>
+
+    <section class="player" id="player" hidden aria-label="Reproductor">
+      <p class="place" id="plTitle"></p>
+      <p class="meta" id="plShow"></p>
+      <audio id="audio" controls preload="none"></audio>
+      <div class="btns">
+        <button class="btn ghost" id="back30" type="button">Atrás 30 s</button>
+        <button class="btn ghost" id="fwd30" type="button">Adelante 30 s</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-eps">
+      <h2 id="h-eps">Episodios recientes</h2>
+      <ol class="eps" id="podList"></ol>
+      <p class="empty" id="podEmpty">Aún no has buscado ningún tema.</p>
+      <button class="btn ghost" id="podRemove" type="button" hidden>Quitar el tema seleccionado</button>
+    </section>
+  </div>
 </main>
 
 <script>
@@ -266,14 +343,15 @@
     var token = ++state.speakToken;
     var chunks = chunkText(text), i = 0;
     state.speaking = true;
+    window.dispatchEvent(new Event("rn-speech-start"));
     function next() {
       if (token !== state.speakToken) return;
-      if (i >= chunks.length) { state.speaking = false; if (onDone) onDone(); return; }
+      if (i >= chunks.length) { state.speaking = false; window.dispatchEvent(new Event("rn-speech-end")); if (onDone) onDone(); return; }
       var u = new SpeechSynthesisUtterance(chunks[i++]);
       u.lang = "es-ES"; u.rate = 1.0;
       var v = pickVoice(); if (v) u.voice = v;
       u.onend = next;
-      u.onerror = function () { if (token === state.speakToken) { state.speaking = false; } };
+      u.onerror = function () { if (token === state.speakToken) { state.speaking = false; window.dispatchEvent(new Event("rn-speech-end")); } };
       speechSynthesis.speak(u);
     }
     speechSynthesis.cancel();
@@ -281,8 +359,10 @@
   }
 
   function stopSpeaking() {
+    var was = state.speaking;
     state.speakToken++;
     state.speaking = false;
+    if (was) window.dispatchEvent(new Event("rn-speech-end"));
     if ("speechSynthesis" in window) speechSynthesis.cancel();
   }
 
@@ -428,7 +508,209 @@
     else { state.paused = true; speechSynthesis.pause(); els.pause.textContent = "Reanudar voz"; }
   });
 
+  window.addEventListener("rn-audio-start", function () { if (state.speaking) stopSpeaking(); });
+
   if ("speechSynthesis" in window) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function () {}; }
+})();
+
+// ---------- Modo Podcasts ----------
+(function () {
+  "use strict";
+  var KEY = "rn_topics_v1", KEY_DONE = "rn_done_v1";
+  var DEFAULTS = ["Novedades fiscales", "Ciclismo", "Inteligencia artificial"];
+  var $ = function (id) { return document.getElementById(id); };
+  var els = {
+    tabRuta: $("tab-ruta"), tabPod: $("tab-pod"), panelRuta: $("panel-ruta"), panelPod: $("panel-pod"),
+    topics: $("podTopics"), form: $("podForm"), input: $("podNew"), status: $("podStatus"),
+    player: $("player"), plTitle: $("plTitle"), plShow: $("plShow"), audio: $("audio"),
+    back: $("back30"), fwd: $("fwd30"), list: $("podList"), empty: $("podEmpty"), remove: $("podRemove"), save: $("podSave")
+  };
+  var st = { topics: [], sel: null, token: 0, resumeAfterSpeech: false, done: {} };
+
+  function read(k, fallback) {
+    try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? fallback : v; } catch (e) { return fallback; }
+  }
+  function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  st.topics = read(KEY, null);
+  if (!Array.isArray(st.topics) || st.topics.length === 0) st.topics = DEFAULTS.slice();
+  st.done = read(KEY_DONE, {}) || {};
+
+  function setStatus(msg, isErr) {
+    els.status.textContent = msg;
+    els.status.className = "status" + (isErr ? " err" : "");
+  }
+
+  // ---------- Pestañas ----------
+  function showTab(name) {
+    var pod = name === "pod";
+    els.panelRuta.hidden = pod; els.panelPod.hidden = !pod;
+    els.tabRuta.setAttribute("aria-selected", pod ? "false" : "true");
+    els.tabPod.setAttribute("aria-selected", pod ? "true" : "false");
+  }
+  els.tabRuta.addEventListener("click", function () { showTab("ruta"); });
+  els.tabPod.addEventListener("click", function () { showTab("pod"); });
+
+  // ---------- Temas ----------
+  function renderTopics() {
+    els.topics.innerHTML = "";
+    st.topics.forEach(function (t) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = t;
+      b.setAttribute("aria-pressed", t === st.sel ? "true" : "false");
+      b.addEventListener("click", function () { selectTopic(t); });
+      els.topics.appendChild(b);
+    });
+    var saved = !!st.sel && st.topics.indexOf(st.sel) !== -1;
+    els.remove.hidden = !saved;
+    els.save.hidden = !st.sel || saved;
+    if (!els.save.hidden) els.save.textContent = "Guardar «" + st.sel + "» en mis temas";
+  }
+
+  function selectTopic(t) {
+    st.sel = t; renderTopics(); search(t);
+  }
+
+  els.form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var t = els.input.value.replace(/\s+/g, " ").trim();
+    if (!t) return;
+    var saved = st.topics.filter(function (x) { return x.toLowerCase() === t.toLowerCase(); })[0];
+    els.input.blur();
+    selectTopic(saved || t);
+  });
+
+  els.save.addEventListener("click", function () {
+    if (!st.sel || st.topics.indexOf(st.sel) !== -1) return;
+    st.topics.push(st.sel); write(KEY, st.topics);
+    renderTopics();
+  });
+
+  els.remove.addEventListener("click", function () {
+    if (!st.sel) return;
+    st.topics = st.topics.filter(function (x) { return x !== st.sel; });
+    write(KEY, st.topics);
+    st.sel = null; st.token++;
+    els.list.innerHTML = ""; els.empty.hidden = false; els.empty.textContent = "Aún no has buscado ningún tema.";
+    setStatus("Tema quitado. Elige otro para buscar podcasts.");
+    renderTopics();
+  });
+
+  // ---------- Búsqueda (Apple Podcasts, abierta y sin clave) ----------
+  function jsonp(url) {
+    return new Promise(function (resolve, reject) {
+      var cb = "rnp" + Date.now(), s = document.createElement("script");
+      var timer = setTimeout(function () { cleanup(); reject(new Error("timeout")); }, 12000);
+      function cleanup() { clearTimeout(timer); try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (s.parentNode) s.parentNode.removeChild(s); }
+      window[cb] = function (d) { cleanup(); resolve(d); };
+      s.onerror = function () { cleanup(); reject(new Error("jsonp")); };
+      s.src = url + "&callback=" + cb;
+      document.head.appendChild(s);
+    });
+  }
+
+  function itunes(term) {
+    var url = "https://itunes.apple.com/search?media=podcast&entity=podcastEpisode&country=ES&lang=es_es&limit=100&term=" + encodeURIComponent(term);
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).catch(function () { return jsonp(url); });
+  }
+
+  function pick(data) {
+    var seen = {}, items = [];
+    (data.results || []).forEach(function (r) {
+      if (!r.episodeUrl || !r.releaseDate || seen[r.episodeUrl]) return;
+      seen[r.episodeUrl] = true;
+      items.push({
+        title: r.trackName || "Episodio", show: r.collectionName || r.artistName || "Podcast",
+        date: new Date(r.releaseDate), url: r.episodeUrl,
+        mins: r.trackTimeMillis ? Math.round(r.trackTimeMillis / 60000) : null
+      });
+    });
+    items.sort(function (a, b) { return b.date - a.date; });
+    var limit = Date.now() - 120 * 86400000;
+    var recent = items.filter(function (i) { return i.date.getTime() > limit; });
+    return (recent.length >= 3 ? recent : items).slice(0, 10);
+  }
+
+  function fmtDate(d) {
+    try { return d.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return ""; }
+  }
+
+  function search(topic) {
+    var my = ++st.token;
+    els.list.innerHTML = ""; els.empty.hidden = true;
+    setStatus("Buscando podcasts sobre " + topic + "…");
+    itunes(topic).then(function (data) {
+      if (my !== st.token) return;
+      var eps = pick(data);
+      if (eps.length === 0) {
+        els.empty.hidden = false; els.empty.textContent = "No hay episodios para este tema. Prueba con otras palabras.";
+        setStatus("Sin resultados para " + topic + ".", true);
+        return;
+      }
+      eps.forEach(function (ep) { els.list.appendChild(row(ep)); });
+      setStatus(eps.length + " episodios recientes sobre " + topic + ". Toca uno para escucharlo.");
+    }).catch(function () {
+      if (my !== st.token) return;
+      els.empty.hidden = false; els.empty.textContent = "No se pudo buscar ahora.";
+      setStatus("No se pudo buscar podcasts. Comprueba la conexión de datos.", true);
+    });
+  }
+
+  function row(ep) {
+    var li = document.createElement("li");
+    if (st.done[ep.url]) li.className = "done";
+    var b = document.createElement("button"); b.type = "button";
+    var t = document.createElement("span"); t.className = "t"; t.textContent = ep.title;
+    var m = document.createElement("span"); m.className = "m";
+    m.textContent = ep.show + " · " + fmtDate(ep.date) + (ep.mins ? " · " + ep.mins + " min" : "") + (st.done[ep.url] ? " · escuchado" : "");
+    b.appendChild(t); b.appendChild(m);
+    b.addEventListener("click", function () { play(ep, li); });
+    li.appendChild(b);
+    return li;
+  }
+
+  // ---------- Reproductor ----------
+  function play(ep, li) {
+    window.dispatchEvent(new Event("rn-audio-start"));
+    st.resumeAfterSpeech = false;
+    els.player.hidden = false;
+    els.plTitle.textContent = ep.title;
+    els.plShow.textContent = ep.show + " · " + fmtDate(ep.date);
+    els.audio.src = ep.url;
+    var p = els.audio.play();
+    if (p && p.catch) p.catch(function () { setStatus("No se pudo reproducir este episodio. Prueba con otro.", true); });
+    st.done[ep.url] = true;
+    var keys = Object.keys(st.done);
+    if (keys.length > 300) delete st.done[keys[0]];
+    write(KEY_DONE, st.done);
+    if (li) li.className = "done";
+    if ("mediaSession" in navigator && window.MediaMetadata) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({ title: ep.title, artist: ep.show });
+        navigator.mediaSession.setActionHandler("seekbackward", function () { els.audio.currentTime = Math.max(0, els.audio.currentTime - 30); });
+        navigator.mediaSession.setActionHandler("seekforward", function () { els.audio.currentTime += 30; });
+      } catch (e) {}
+    }
+    els.player.scrollIntoView({ block: "nearest" });
+  }
+  els.audio.addEventListener("error", function () {
+    if (els.audio.getAttribute("src")) setStatus("Este episodio no se puede reproducir aquí. Prueba con otro.", true);
+  });
+  els.back.addEventListener("click", function () { els.audio.currentTime = Math.max(0, els.audio.currentTime - 30); });
+  els.fwd.addEventListener("click", function () { els.audio.currentTime = els.audio.currentTime + 30; });
+
+  // La narración de la ruta tiene prioridad: pausa el podcast y lo reanuda después
+  window.addEventListener("rn-speech-start", function () {
+    if (!els.audio.paused && !els.audio.ended) { els.audio.pause(); st.resumeAfterSpeech = true; }
+  });
+  window.addEventListener("rn-speech-end", function () {
+    if (st.resumeAfterSpeech) { st.resumeAfterSpeech = false; var p = els.audio.play(); if (p && p.catch) p.catch(function () {}); }
+  });
+
+  renderTopics();
 })();
 </script>
 </body>
