@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b7a5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ruta Narrada">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgBAMAAAAQtmoLAAAAElBMVEWQw7UMelwLelwLelsKelwDc1REwmH2AAADgklEQVR42u2Xz08bRxTHPw//ACrAMwGrl6pQ1DaVGgJRFCkqRtgSEbSp2qCSv9KV8IFbjGJSjhSBhFJXJS1VpdaSoZ7FVpjKZqeHNTZ4jSGHnuq97M6OvvPe9/34vl2Z5t2uAfqAPqAP6AP+U0C0564zgH4HQHUJ2FS3BriZPJDev/xOeknlwLEBYqOqt4W24565FenaQ2C3fWrC7w2QVAFI7xmYexl7BidHvTlUywCxsQeaei42AnJDlMbKAPg/gkOdq47tiA5ZiFvAt9Zay7LHjYD4wt1ia3E8eHMtSd5dWoQCe5V0BZBIGZmLTkE9R2yks5iukK4sAY0CuKm9Q6JlaCwBeX0NwCy9MJBczAGinSqLc1mQtR3pStp98b0F3hZR9uRsiLvF2JgFeP3JX0NdSLva5sVjGgO1Al83Ke8smi4AM29AawUEHhhZB9Ea3IYLu+Qau8jzj+58/mmRN75bKT0qAkS+Gn/4p/W//HkoRHo+x1oeomWo46gWgFj9/HyHJ1k2RkMu1XIk81qre81iEwPyrQKt86vUFzsB7gMkpYEE0QzwKgVMbKbZNuhtxSvTaWGS6BZQKzCzDZw6IKXAACNpTjstVAskmrGZHFVADmRPPPw5wKMx2wEQw4ICN090y6WhAUQ9DvATIAc4FcqDAJwWSDjjgQMUoIIMqFAe7FnEAvW/eTo9/d5rQNnPIP64eHw2xOD7peF/rlhw9xkw4FKQzWazAHNMAuABboo/TNcGapdAbK/t6K3UO/Batq8TsqbB33Wz8/RiPhAPHfGv2L5o0WpZHhg4zQCQjT3bvF+4o8B9fOyBnJjV/VDHTRoYzQf9QF4pIkYhO6Jo5/kSQBkA0YBzAVkz2lIAI52kE/DDRX2dFkgo8WhMXsTuXhDdy4DzdOsVA4YFOMBNtQSc6F5HpqVk/JWgrSoLRRm2DDn7xh8Oun0XFaqlmmLDGcBFc0wcgZ+hnjaAM/PIYqin44+L/syHR9aOjJdY9kAO3/LLyk/W1jPrxFpC05bKahmSaXhhmlPNzeaQNWisw+p+WFvdbA5EVWhtV8uAdubKXGwrnxzGLVgg+VtgP54pgrUg33jdim/kUXBMMtU8TrZXg/t3W121VX59MlhCkqmtC4Lxw+WSZfzppr5mPlQm5uB4v92PrpqB85f62oHiTOe3SKVzikr/L6sP6AP6gP8d4F9uTkkaVa6ptgAAAABJRU5ErkJggg==">
+<title>Ruta Narrada</title>
+<style>
+  /* Pantalla única pensada para el manillar: botones grandes, contraste alto, legible al sol */
+  :root {
+    --bg: #eef3f1;
+    --ink: #0d2b26;
+    --muted: #4d6660;
+    --line: #cddad5;
+    --card: #ffffff;
+    --accent: #0b7a5c;
+    --accent-ink: #ffffff;
+    --alert: #c8431f;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--font);
+    font-size: 16px; line-height: 1.45;
+    padding-block: max(16px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  main { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  h1 { font-size: 1.5rem; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 2px 0 0; font-size: 0.95rem; }
+  h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin: 0 0 8px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 999px; cursor: pointer;
+    border: 2px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .chip:focus-visible, .btn:focus-visible, select:focus-visible { outline: 3px solid var(--alert); outline-offset: 2px; }
+
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  label { font-weight: 600; font-size: 0.95rem; }
+  select {
+    font: inherit; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--line);
+    background: var(--card); color: var(--ink);
+  }
+
+  .btn {
+    font: inherit; font-weight: 700; font-size: 1.1rem; padding: 18px 20px; border-radius: 16px;
+    border: 0; cursor: pointer; width: 100%; background: var(--accent); color: var(--accent-ink);
+  }
+  .btn.stop { background: var(--alert); }
+  .btn.ghost { background: var(--card); color: var(--ink); border: 2px solid var(--line); font-size: 1rem; padding: 14px 16px; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btns .full { grid-column: 1 / -1; }
+
+  .now {
+    background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; min-height: 96px;
+  }
+  .now .place { font-size: 1.2rem; font-weight: 700; margin: 0 0 4px; }
+  .now .meta { color: var(--muted); margin: 0; font-size: 0.92rem; }
+  .status { font-size: 0.92rem; color: var(--muted); margin: 0; }
+  .status.err { color: var(--alert); font-weight: 600; }
+
+  ol.log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  ol.log li { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  ol.log .t { font-weight: 600; }
+  ol.log .m { color: var(--muted); font-size: 0.85rem; }
+  .empty { color: var(--muted); font-size: 0.92rem; margin: 0; }
+  .demo-note { font-size: 0.82rem; color: var(--muted); margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Ruta Narrada</h1>
+    <p class="sub">Tu guía de voz mientras pedaleas.</p>
+  </header>
+
+  <section aria-labelledby="h-temas">
+    <h2 id="h-temas">Temas</h2>
+    <div class="chips" id="chips">
+      <button class="chip" type="button" data-theme="historia" aria-pressed="true">Historia</button>
+      <button class="chip" type="button" data-theme="naturaleza" aria-pressed="true">Naturaleza</button>
+      <button class="chip" type="button" data-theme="arte" aria-pressed="false">Arte y arquitectura</button>
+      <button class="chip" type="button" data-theme="curiosidades" aria-pressed="false">Curiosidades</button>
+    </div>
+  </section>
+
+  <section class="row">
+    <label for="radio">Avisar de lugares a</label>
+    <select id="radio">
+      <option value="400">400 m</option>
+      <option value="800" selected>800 m</option>
+      <option value="1500">1,5 km</option>
+      <option value="3000">3 km</option>
+    </select>
+  </section>
+
+  <section class="btns">
+    <button class="btn full" id="start" type="button">Empezar ruta</button>
+    <button class="btn ghost" id="skip" type="button" hidden>Saltar</button>
+    <button class="btn ghost" id="pause" type="button" hidden>Pausar voz</button>
+  </section>
+
+  <p class="status" id="status" role="status">Elige temas y pulsa Empezar. Necesita permiso de ubicación.</p>
+
+  <section aria-labelledby="h-now">
+    <h2 id="h-now">Ahora</h2>
+    <div class="now" aria-live="polite">
+      <p class="place" id="place">Nada que contar todavía</p>
+      <p class="meta" id="meta">Cuando pases cerca de un sitio interesante, lo oirás aquí.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-log">
+    <h2 id="h-log">Ya contados</h2>
+    <ol class="log" id="log"></ol>
+    <p class="empty" id="logEmpty">Aún no se ha narrado ningún lugar.</p>
+  </section>
+
+  <section>
+    <button class="btn ghost" id="demo" type="button">Probar sin moverme (demo en Madrid)</button>
+    <p class="demo-note">Simula un paseo por el centro de Madrid para comprobar que la voz y los temas funcionan desde casa.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Estado ----------
+  var state = {
+    active: false, demo: false, watchId: null, demoTimer: null, tickTimer: null,
+    pos: null, prev: null, heading: null,
+    lastFetch: null, lastFetchTime: 0, fetching: false,
+    places: {}, told: {}, speaking: false, paused: false, speakToken: 0, wakeLock: null
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var els = {
+    chips: $("chips"), radio: $("radio"), start: $("start"), skip: $("skip"), pause: $("pause"),
+    status: $("status"), place: $("place"), meta: $("meta"), log: $("log"), logEmpty: $("logEmpty"), demo: $("demo")
+  };
+
+  // ---------- Temas (palabras clave en título, extracto y categorías de Wikipedia) ----------
+  var THEMES = {
+    historia: /hist[oó]ric|medieval|romano|romana|castillo|fortaleza|muralla|guerra|batalla|siglo|arqueol|yacimiento|monasterio|convento|ermita|iglesia|torre|reino|imperio|fundad|rey |reina |conquista|antigu/i,
+    naturaleza: /parque|natural|r[ií]o |r[ií]o$|sierra|monte|monta[ñn]a|bosque|embalse|reserva|flora|fauna|lago|laguna|playa|cascada|cueva|pico|valle|humedal|arroyo|ave |aves|especie|ecosistema|dehesa|pinar|hayedo|v[ií]a verde/i,
+    arte: /museo|arte |arquitectura|escultura|pintor|pintura|catedral|palacio|teatro|modernista|barroco|renacentista|g[oó]tico|mudéjar|mud[eé]jar|plaza|fuente|puente|biblioteca|galer[ií]a|monumento/i
+  };
+
+  function themesOf(p) {
+    var blob = p.title + " " + p.extract + " " + p.cats.join(" ");
+    var found = [];
+    Object.keys(THEMES).forEach(function (k) { if (THEMES[k].test(blob)) found.push(k); });
+    if (found.length === 0) found.push("curiosidades");
+    return found;
+  }
+
+  function selectedThemes() {
+    var out = [];
+    els.chips.querySelectorAll(".chip").forEach(function (c) {
+      if (c.getAttribute("aria-pressed") === "true") out.push(c.getAttribute("data-theme"));
+    });
+    return out;
+  }
+
+  els.chips.addEventListener("click", function (e) {
+    var b = e.target.closest(".chip");
+    if (!b) return;
+    var on = b.getAttribute("aria-pressed") === "true";
+    b.setAttribute("aria-pressed", on ? "false" : "true");
+  });
+
+  // ---------- Geometría ----------
+  function toRad(d) { return d * Math.PI / 180; }
+  function dist(a, b) {
+    var R = 6371000, dLat = toRad(b.lat - a.lat), dLon = toRad(b.lon - a.lon);
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  }
+  function bearing(a, b) {
+    var y = Math.sin(toRad(b.lon - a.lon)) * Math.cos(toRad(b.lat));
+    var x = Math.cos(toRad(a.lat)) * Math.sin(toRad(b.lat)) -
+            Math.sin(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.cos(toRad(b.lon - a.lon));
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  }
+  function side(placePos) {
+    if (state.heading == null || !state.pos) return "";
+    var diff = ((bearing(state.pos, placePos) - state.heading + 540) % 360) - 180;
+    var a = Math.abs(diff);
+    if (a < 30) return "justo delante";
+    if (a > 150) return "a tu espalda";
+    return diff > 0 ? "a tu derecha" : "a tu izquierda";
+  }
+  function distText(m) {
+    if (m < 1000) return "a unos " + (Math.max(10, Math.round(m / 10) * 10)) + " metros";
+    return "a unos " + (m / 1000).toFixed(1).replace(".", ",") + " kilómetros";
+  }
+
+  // ---------- Estado visible ----------
+  function setStatus(msg, isErr) {
+    els.status.textContent = msg;
+    els.status.className = "status" + (isErr ? " err" : "");
+  }
+
+  // ---------- Datos: Wikipedia (lugares cercanos con resumen) ----------
+  function fetchPlaces(pos) {
+    if (state.fetching) return;
+    state.fetching = true;
+    var radius = Math.min(10000, parseInt(els.radio.value, 10) * 1.5);
+    var url = "https://es.wikipedia.org/w/api.php?action=query&format=json&origin=*" +
+      "&generator=geosearch&ggscoord=" + pos.lat + "%7C" + pos.lon +
+      "&ggsradius=" + Math.round(radius) + "&ggslimit=20" +
+      "&prop=extracts%7Ccategories%7Ccoordinates&exintro=1&explaintext=1&exlimit=max&exsentences=6" +
+      "&cllimit=max&colimit=max";
+    fetch(url).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      var pages = (data.query && data.query.pages) || {};
+      Object.keys(pages).forEach(function (id) {
+        var p = pages[id];
+        if (state.places[id] || !p.coordinates || !p.extract || p.extract.length < 80) return;
+        state.places[id] = {
+          id: id, title: p.title, extract: p.extract.replace(/\s+/g, " ").trim(),
+          cats: (p.categories || []).map(function (c) { return c.title; }),
+          lat: p.coordinates[0].lat, lon: p.coordinates[0].lon
+        };
+      });
+      state.lastFetch = { lat: pos.lat, lon: pos.lon };
+      state.lastFetchTime = Date.now();
+    }).catch(function () {
+      setStatus("No se pudieron cargar lugares. Comprueba la conexión de datos.", true);
+    }).then(function () { state.fetching = false; });
+  }
+
+  // ---------- Voz ----------
+  function pickVoice() {
+    var voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    var es = voices.filter(function (v) { return /^es(-|_|$)/i.test(v.lang); });
+    var esES = es.filter(function (v) { return /es[-_]ES/i.test(v.lang); });
+    return (esES[0] || es[0] || null);
+  }
+
+  function chunkText(text) {
+    var parts = text.match(/[^.!?]+[.!?]+|\S[^.!?]*$/g) || [text];
+    var chunks = [], cur = "";
+    parts.forEach(function (s) {
+      if ((cur + s).length > 180 && cur) { chunks.push(cur.trim()); cur = s; } else { cur += s; }
+    });
+    if (cur.trim()) chunks.push(cur.trim());
+    return chunks;
+  }
+
+  function speak(text, onDone) {
+    if (!("speechSynthesis" in window)) { setStatus("Este navegador no tiene voz. Prueba con Chrome o Safari.", true); return; }
+    var token = ++state.speakToken;
+    var chunks = chunkText(text), i = 0;
+    state.speaking = true;
+    function next() {
+      if (token !== state.speakToken) return;
+      if (i >= chunks.length) { state.speaking = false; if (onDone) onDone(); return; }
+      var u = new SpeechSynthesisUtterance(chunks[i++]);
+      u.lang = "es-ES"; u.rate = 1.0;
+      var v = pickVoice(); if (v) u.voice = v;
+      u.onend = next;
+      u.onerror = function () { if (token === state.speakToken) { state.speaking = false; } };
+      speechSynthesis.speak(u);
+    }
+    speechSynthesis.cancel();
+    next();
+  }
+
+  function stopSpeaking() {
+    state.speakToken++;
+    state.speaking = false;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+  }
+
+  // ---------- Selección y narración ----------
+  function narrationFor(p, d) {
+    var s = side(p);
+    var intro = "Cerca de ti, " + distText(d) + (s ? ", " + s : "") + ": " + p.title + ". ";
+    var body = p.extract;
+    if (body.length > 650) {
+      var cut = body.slice(0, 650), last = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf(".\n"));
+      body = last > 200 ? cut.slice(0, last + 1) : cut;
+    }
+    return intro + body;
+  }
+
+  function addLog(p, d) {
+    var li = document.createElement("li");
+    var t = document.createElement("div"); t.className = "t"; t.textContent = p.title;
+    var m = document.createElement("div"); m.className = "m";
+    m.textContent = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) +
+      " · " + distText(d).replace("a unos ", "a ") + " · " + themesOf(p).join(", ");
+    li.appendChild(t); li.appendChild(m);
+    els.log.insertBefore(li, els.log.firstChild);
+    els.logEmpty.hidden = true;
+  }
+
+  function tick() {
+    if (!state.active || !state.pos) return;
+    var radius = parseInt(els.radio.value, 10);
+    var moved = state.lastFetch ? dist(state.pos, state.lastFetch) : Infinity;
+    if (!state.fetching && (moved > radius / 3 || Date.now() - state.lastFetchTime > 120000)) fetchPlaces(state.pos);
+
+    if (state.speaking || state.paused) return;
+    var themes = selectedThemes();
+    if (themes.length === 0) { setStatus("Elige al menos un tema para oír narraciones.", true); return; }
+
+    var best = null, bestD = Infinity, nearby = 0;
+    Object.keys(state.places).forEach(function (id) {
+      var p = state.places[id];
+      if (state.told[id]) return;
+      var d = dist(state.pos, p);
+      if (d > radius) return;
+      nearby++;
+      var ok = themesOf(p).some(function (t) { return themes.indexOf(t) !== -1; });
+      if (ok && d < bestD) { best = p; bestD = d; }
+    });
+
+    if (best) {
+      state.told[best.id] = true;
+      els.place.textContent = best.title;
+      els.meta.textContent = distText(bestD).replace("a unos ", "A ") + " · " + themesOf(best).join(", ");
+      addLog(best, bestD);
+      setStatus("Narrando…");
+      speak(narrationFor(best, bestD), function () { setStatus("Pedaleando… buscando el próximo lugar."); });
+    } else {
+      setStatus(nearby > 0 ? "Hay lugares cerca, pero de otros temas." : "Pedaleando… buscando lugares cerca de ti.");
+    }
+  }
+
+  // ---------- Posición ----------
+  function onPosition(lat, lon, hdg) {
+    var np = { lat: lat, lon: lon };
+    if (state.pos && dist(state.pos, np) >= 12) {
+      state.heading = bearing(state.pos, np);
+      state.prev = state.pos; state.pos = np;
+    } else if (!state.pos) {
+      state.pos = np;
+    }
+    if (hdg != null && !isNaN(hdg) && state.heading == null) state.heading = hdg;
+  }
+
+  function startReal() {
+    if (!("geolocation" in navigator)) { setStatus("Este dispositivo no tiene GPS accesible desde el navegador.", true); return false; }
+    setStatus("Buscando señal GPS…");
+    state.watchId = navigator.geolocation.watchPosition(function (p) {
+      onPosition(p.coords.latitude, p.coords.longitude, p.coords.heading);
+      if (state.active && els.status.textContent.indexOf("Buscando señal") === 0) setStatus("GPS listo. Pedaleando…");
+    }, function (err) {
+      var msg = err.code === 1 ? "Permiso de ubicación denegado. Actívalo en los ajustes del navegador."
+              : "No se pudo obtener la posición GPS.";
+      setStatus(msg, true);
+    }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 });
+    return true;
+  }
+
+  function startDemo() {
+    var lat = 40.4155, lon = -3.7074; // Plaza Mayor, Madrid
+    state.pos = { lat: lat, lon: lon }; state.heading = 90;
+    state.demoTimer = setInterval(function () {
+      lon += 0.00018;                  // ~15 m hacia el este cada 2 s
+      lat += (Math.random() - 0.5) * 0.00004;
+      onPosition(lat, lon, null);
+    }, 2000);
+    setStatus("Modo demo: paseo simulado por Madrid.");
+  }
+
+  // ---------- Pantalla encendida ----------
+  function keepAwake() {
+    if (navigator.wakeLock && navigator.wakeLock.request) {
+      navigator.wakeLock.request("screen").then(function (l) { state.wakeLock = l; }).catch(function () {});
+    }
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (state.active && document.visibilityState === "visible" && !state.wakeLock) keepAwake();
+  });
+
+  // ---------- Controles ----------
+  function begin(demo) {
+    if (state.active) return;
+    state.active = true; state.demo = demo; state.paused = false;
+    state.places = {}; state.told = {}; state.lastFetch = null; state.pos = null; state.heading = null;
+    els.log.innerHTML = ""; els.logEmpty.hidden = false;
+    els.place.textContent = "Nada que contar todavía";
+    els.meta.textContent = "Cuando pases cerca de un sitio interesante, lo oirás aquí.";
+    if (demo) startDemo(); else if (!startReal()) { state.active = false; return; }
+    els.start.textContent = "Terminar ruta"; els.start.classList.add("stop");
+    els.skip.hidden = false; els.pause.hidden = false; els.pause.textContent = "Pausar voz";
+    els.demo.disabled = true;
+    keepAwake();
+    // Desbloquea la voz con un gesto del usuario
+    if ("speechSynthesis" in window) { var u = new SpeechSynthesisUtterance(" "); speechSynthesis.speak(u); }
+    state.tickTimer = setInterval(tick, 2500);
+  }
+
+  function end() {
+    state.active = false;
+    if (state.watchId != null) navigator.geolocation.clearWatch(state.watchId);
+    clearInterval(state.demoTimer); clearInterval(state.tickTimer);
+    state.watchId = null;
+    stopSpeaking();
+    if (state.wakeLock) { try { state.wakeLock.release(); } catch (e) {} state.wakeLock = null; }
+    els.start.textContent = "Empezar ruta"; els.start.classList.remove("stop");
+    els.skip.hidden = true; els.pause.hidden = true; els.demo.disabled = false;
+    setStatus("Ruta terminada. Elige temas y pulsa Empezar cuando quieras.");
+  }
+
+  els.start.addEventListener("click", function () { if (state.active) end(); else begin(false); });
+  els.demo.addEventListener("click", function () { begin(true); });
+  els.skip.addEventListener("click", function () { stopSpeaking(); setStatus("Saltado. Buscando el próximo lugar."); });
+  els.pause.addEventListener("click", function () {
+    if (!("speechSynthesis" in window)) return;
+    if (state.paused) { state.paused = false; speechSynthesis.resume(); els.pause.textContent = "Pausar voz"; }
+    else { state.paused = true; speechSynthesis.pause(); els.pause.textContent = "Reanudar voz"; }
+  });
+
+  if ("speechSynthesis" in window) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function () {}; }
+})();
+</script>
+</body>
+</html>
